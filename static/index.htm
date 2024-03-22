@@ -87,6 +87,30 @@
                 const chartHeight = height - margin.top - margin.bottom;
 
                 let annotations = svg.append("g").attr("id","annotations");
+                let questionSelected = 0;
+                let questionBox = svg.append("g").attr("id","points")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
+                let nextQuestion = svg.append("rect")
+                    .attr("x", 400)
+                    .attr("y", 0)
+                    .attr("class", "nextQ")
+                    .attr("width", 30)
+                    .attr("height", 30)
+                    .attr("fill", "blue")
+                    .attr("transform",`translate(0,20)`)
+                    .on("click", updateQuestion);
+                let prevQuestion = svg.append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("class", "prevQ")
+                    .attr("width", 30)
+                    .attr("height", 30)
+                    .attr("fill", "red")
+                    .attr("transform",`translate(0,20)`)
+                    .on("click", updateQuestion);
+
+
+
                 let chartArea = svg.append("g").attr("id","points")
                     .attr("transform",`translate(${margin.left},${margin.top})`);
 
@@ -123,10 +147,19 @@
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
                 console.log(surveyData);
+
+                
                 updateChart(0);
 
                 function updateChart(question_num) {
-                    const data = surveyData[question_num] //its calling the first survery question
+                    //clear labels
+                    annotations.html("");
+
+                    //change question and change data based on question
+                    questionBox.append("text")
+                           .text(surveyData[question_num]['question']);
+                    const data = surveyData[question_num] 
+                    //reformat data for bar chart 
                     const data_formatted = Object.entries(data["adults"]).map(([key, value]) => ({
                                                             key: key,
                                                             value: value
@@ -137,7 +170,7 @@
                     //.tickFormat(d3.format('.0%'));
                     let leftGridlines = d3.axisLeft(percentScale)
                                         .tickSize(-chartWidth-10)
-                                        .tickFormat("")
+                                        .tickFormat("") //need to change to add percent symbol without changing values
                     annotations.append("g")
                             .attr("class", "y axis")
                             .attr("transform",`translate(${margin.left-10},${margin.top})`)
@@ -161,7 +194,7 @@
                     bottomAxis.scale(answerScale)
                     bottomAxisG.transition().call(bottomAxis);
 
-                    chartArea.selectAll('rect.bar').data(data_formatted) //like WHY IS IT NOT WORKING
+                    chartArea.selectAll('rect.bar').data(data_formatted)
                             .join('rect')
                             .attr('class','bar')
                             .attr("fill", "steelblue")
@@ -170,6 +203,17 @@
                             .attr("stroke", "black")
                             .attr("height", (d) => percentScale(0) - percentScale(d['value']))
                             .attr("width", answerScale.bandwidth())
+                }
+
+                //when blue box is clicked, 
+                function updateQuestion() {
+                    if (d3.select(this).attr("class") == "nextQ") { questionSelected += 1; }
+                    else { questionSelected -= 1;}                   
+
+                    questionBox.html("");
+                    updateChart(questionSelected);
+
+
                 }
                 
 
