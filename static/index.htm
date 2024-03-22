@@ -33,6 +33,23 @@
                 font-size: 16px;
             }
 
+            text {
+                font-family: 'Roboto Condensed';
+            }
+
+            .toggle-holder {
+                padding-left:7em;
+                padding-top: 10px;
+            }
+
+            #container {
+                padding-left: 4em;
+            }
+
+            .title-text {
+                font-size: 30px;
+            }
+
         </style>
     </head>
 
@@ -45,13 +62,80 @@
             <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73) for Prof. Rzeszotarski's INFO 4310 class</p>
             <p style="color: grey; ">&emsp;<i>(original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a>)</i></p>
         </div>
+        <div class="toggle-holder" height="500" width="200" >
+
+            <svg id="toggle-menu" height="100" width="500"></svg>
+
+
+        </div>
 
         <div id="container">
             <!-- ALL : This is where our visualizations will go !!!!!!!!1! -->
+            <svg id="chart" height="500" width="600" style="border: 1px solid blue;"></svg>
+
 
         </div>
         
         <script>
+            const requestData = async function() {
+                //const surveyData = await d3.json("data/masc_survey_formatted.json");
+                const svg = d3.select("#chart");
+                let margin = { top: 50, bottom: 10, right: 10, left: 50 }
+
+                //Adding Icons for the toggle bar at the top
+                const categories = ["Society", "Appearance", "Work", "Dating"];
+                const images = ['society.png', 'mirror.png', 'briefcase.png', 'rose.png'];
+
+                const svg_toggle = d3.select("#toggle-menu");
+
+                svg_toggle.selectAll("image")
+                           .data(images)
+                           .join("image")
+                           .attr("xlink:href", (d, i) => `data/${images[i]}`)
+                           .attr("width", 60)
+                           .attr("height", 60)
+                           .attr("x", (d, i) => i*100+10)
+                           .attr("y", 10)
+                           .on('mouseover', function () {
+                                d3.select(this).style("opacity", "0.6");
+                           })
+                           .on('mouseout', function () {
+                                d3.select(this).style("opacity", "1");
+                           })
+                           .on('click', mouseEntersState);
+
+                svg_toggle.selectAll("text")
+                              .data(categories)
+                              .enter()
+                              .append("text")
+                              .text(function(d, i){return categories[i];})
+                              .attr("x", (d, i) => i*100+35)
+                              .attr("y", 90)
+                              .style("text-anchor", "middle");
+
+                const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
+                
+                //function for when user clicks on an icon
+                function mouseEntersState() {
+                    titlebar.html("");
+                    const selected = d3.select(this);
+                    const image_name = selected._groups[0][0].__data__;
+
+                    //Changing the title name...later graphs will dynamically change
+                    const title = categories[images.indexOf(image_name)];
+
+                    titlebar.append("text")
+                            .text(title)
+                            .attr("class", "title-text");
+                }
+
+                //console.log(surveyData);
+
+            }
+
+            requestData();
+            
+
             
 
             
