@@ -8,7 +8,7 @@ def convHelper(xin):
     if (stripped):
         xout = float(stripped)
     else:
-        xout =  float("NaN")
+        xout =  None
 
     return xout
 
