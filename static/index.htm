@@ -91,7 +91,7 @@
                     .attr("transform",`translate(${margin.left},${margin.top})`);
 
                 //Adding Icons for the toggle bar at the top
-                const categories = ["Society", "Appearance", "Work", "Dating"];
+                const categories = ["Masculinity", "Lifestyle", "Work", "Relationships"];
                 const images = ['society.png', 'mirror.png', 'briefcase.png', 'rose.png'];
 
                 const svg_toggle = d3.select("#toggle-menu");
@@ -122,10 +122,19 @@
                               .style("text-anchor", "middle");
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
+                console.log(surveyData);
+                updateChart(0);
 
-                function updateChart() {
-                    const percentScale = d3.scaleLinear().domain([0,1]).range([chartHeight, 0]);
-                    let leftAxis = d3.axisLeft(percentScale).tickFormat(d3.format('.0%'));
+                function updateChart(question_num) {
+                    const data = surveyData[question_num] //its calling the first survery question
+                    const data_formatted = Object.entries(data["adults"]).map(([key, value]) => ({
+                                                            key: key,
+                                                            value: value
+                                                            }));
+
+                    const percentScale = d3.scaleLinear().domain([0,100]).range([chartHeight, 0]);
+                    let leftAxis = d3.axisLeft(percentScale);
+                    //.tickFormat(d3.format('.0%'));
                     let leftGridlines = d3.axisLeft(percentScale)
                                         .tickSize(-chartWidth-10)
                                         .tickFormat("")
@@ -143,8 +152,7 @@
                                             .attr("class", "x axis")
                                             .attr("transform",`translate(${margin.left},${chartHeight+margin.top+10})`)
 
-                    const data = surveyData[0] //its calling the first survery question
-                    console.log(d3.keys(data['adults'])) 
+                    
                     
                     const answer = d3.keys(data['adults']); //getting the x-axis answers
                     const answerScale = d3.scaleBand().domain(answer).range([0, chartWidth])
@@ -152,21 +160,18 @@
                     
                     bottomAxis.scale(answerScale)
                     bottomAxisG.transition().call(bottomAxis);
-                    console.log(d3.keys(data['adults']))
 
-                    console.log(d3.keys(data['adults']))
-                    console.log(d3.values(data['adults']))
-
-                    chartArea.selectAll('rect.bar').data(data) //like WHY IS IT NOT WORKING
+                    chartArea.selectAll('rect.bar').data(data_formatted) //like WHY IS IT NOT WORKING
                             .join('rect')
                             .attr('class','bar')
                             .attr("fill", "steelblue")
-                            .attr("x", d => answerScale(d3.keys(d.adults)))
-                            .attr("y", d => percentScale(d3.values(d.adults))) 
-                            .attr("height", d => percentScale(0) - percentScale(d3.values(d.adults)))
+                            .attr("x", (d) => answerScale(d['key']))
+                            .attr("y", (d) => percentScale(d['value'])) 
+                            .attr("stroke", "black")
+                            .attr("height", (d) => percentScale(0) - percentScale(d['value']))
                             .attr("width", answerScale.bandwidth())
                 }
-                updateChart();
+                
 
    
                 
@@ -184,7 +189,6 @@
                             .attr("class", "title-text");
                 }
 
-                console.log(surveyData);
 
             }
 
