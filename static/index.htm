@@ -71,7 +71,7 @@
 
         <div id="container">
             <!-- ALL : This is where our visualizations will go !!!!!!!!1! -->
-            <svg id="chart" height="500" width="600" style="border: 1px solid blue;"></svg>
+            <svg id="chart" height="500" width="700" style="border: 1px solid blue;"></svg>
 
 
         </div>
@@ -80,7 +80,7 @@
             const requestData = async function() {
                 const surveyData = await d3.json("data/masc_survey_formatted.json");
                 const svg = d3.select("#chart");
-                let margin = { top: 50, bottom: 40, right: 10, left: 50 }
+                let margin = { top: 50, bottom: 40, right: 10, left: 120 }
                 const width = svg.attr("width");
                 const height = svg.attr("height");
                 const chartWidth = width - margin.left - margin.right;
@@ -90,24 +90,33 @@
                 let questionSelected = 0;
                 let questionBox = svg.append("g").attr("id","points")
                     .attr("transform",`translate(${margin.left},${margin.top})`);
-                let nextQuestion = svg.append("rect")
-                    .attr("x", 400)
-                    .attr("y", 0)
+                let nextQuestion = svg.append("image")
+                    .join('image')
+                    .attr("xlink:href", 'data/right.png')
+                    .attr("x", 30)
+                    .attr("y", -20)
                     .attr("class", "nextQ")
                     .attr("width", 30)
                     .attr("height", 30)
                     .attr("fill", "blue")
                     .attr("transform",`translate(0,20)`)
                     .on("click", updateQuestion);
-                let prevQuestion = svg.append("rect")
+                console.log(questionSelected)
+
+                let prevQuestion =svg.append("image")
+                    .join('image')
+                    .attr("xlink:href", 'data/left.png')
                     .attr("x", 0)
-                    .attr("y", 0)
+                    .attr("y", -20)
                     .attr("class", "prevQ")
                     .attr("width", 30)
                     .attr("height", 30)
                     .attr("fill", "red")
                     .attr("transform",`translate(0,20)`)
                     .on("click", updateQuestion);
+                
+                if (questionSelected == 0) {
+                    prevQuestion.attr("visibility","hidden");}
 
 
 
@@ -165,51 +174,62 @@
                                                             value: value
                                                             }));
 
-                    const percentScale = d3.scaleLinear().domain([0,100]).range([chartHeight, 0]);
-                    let leftAxis = d3.axisLeft(percentScale);
-                    //.tickFormat(d3.format('.0%'));
-                    let leftGridlines = d3.axisLeft(percentScale)
-                                        .tickSize(-chartWidth-10)
-                                        .tickFormat("") //need to change to add percent symbol without changing values
-                    annotations.append("g")
-                            .attr("class", "y axis")
-                            .attr("transform",`translate(${margin.left-10},${margin.top})`)
-                            .call(leftAxis)
-                    annotations.append("g")
-                            .attr("class", "y gridlines")
-                            .attr("transform",`translate(${margin.left-10},${margin.top})`)
-                            .call(leftGridlines);
-
-                    let bottomAxis = d3.axisBottom()
-                    let bottomAxisG = annotations.append("g")
-                                            .attr("class", "x axis")
-                                            .attr("transform",`translate(${margin.left},${chartHeight+margin.top+10})`)
-
-                    
-                    
                     const answer = d3.keys(data['adults']); //getting the x-axis answers
-                    const answerScale = d3.scaleBand().domain(answer).range([0, chartWidth])
+                    const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
                                                     .padding(0.05);
+                                                    
+                    const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+                    let bottomAxis = d3.axisBottom(percentScale); 
+                    let bottomGridlines = d3.axisBottom(percentScale)
+                        .tickSize(-chartHeight)
+                        .tickFormat(d3.format('.0%'));
+
+                    annotations.append("g")
+                        .attr("class", "x axis") 
+                        .attr("transform", `translate(${margin.left},${chartHeight+margin.top})`)
+                        //.tickFormat(d3.format('.0%'))
+                        .call(bottomAxis); 
+
+                    let leftAxis = d3.axisLeft(answerScale); 
+                    let leftGridlines = d3.axisLeft(answerScale)
+                        .tickSize(-chartWidth)
+                        .tickFormat(""); 
+
+                    annotations.append("g")
+                        .attr("class", "y axis") 
+                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                        .call(leftAxis); 
+
+                    annotations.append("g")
+                        .attr("class", "y gridlines") 
+                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)  
+                        .call(leftGridlines); 
+
                     
-                    bottomAxis.scale(answerScale)
-                    bottomAxisG.transition().call(bottomAxis);
 
                     chartArea.selectAll('rect.bar').data(data_formatted)
                             .join('rect')
                             .attr('class','bar')
                             .attr("fill", "steelblue")
-                            .attr("x", (d) => answerScale(d['key']))
-                            .attr("y", (d) => percentScale(d['value'])) 
+                            .attr("y", (d) => answerScale(d['key']))
+                            .attr("x", (d) => -10) 
                             .attr("stroke", "black")
-                            .attr("height", (d) => percentScale(0) - percentScale(d['value']))
-                            .attr("width", answerScale.bandwidth())
+                            .attr("width", (d) => percentScale(d['value']))
+                            .attr("height", answerScale.bandwidth())
                 }
 
                 //when blue box is clicked, 
                 function updateQuestion() {
+                    prevQuestion.attr("visibility","visible");
+                    nextQuestion.attr("visibility","visible");
                     if (d3.select(this).attr("class") == "nextQ") { questionSelected += 1; }
-                    else { questionSelected -= 1;}                   
-
+                    else { questionSelected -= 1;} 
+                    console.log(questionSelected)                  
+                    if (questionSelected == 0) {
+                        prevQuestion.attr("visibility","hidden");}
+                    if (questionSelected == 34) {
+                        nextQuestion.attr("visibility","hidden");}
+                        
                     questionBox.html("");
                     updateChart(questionSelected);
 
