@@ -101,7 +101,6 @@
                     .attr("fill", "blue")
                     .attr("transform",`translate(0,20)`)
                     .on("click", updateQuestion);
-                console.log(questionSelected)
 
                 let prevQuestion =svg.append("image")
                     .join('image')
@@ -117,6 +116,10 @@
                 
                 if (questionSelected == 0) {
                     prevQuestion.attr("visibility","hidden");}
+                
+                let category_data = surveyData.filter(function(d) {
+                                            return (d["category"] === 'lifestyle')
+                                        })
 
 
 
@@ -140,9 +143,6 @@
                            .on('mouseover', function () {
                                 d3.select(this).style("opacity", "0.6");
                            })
-                           .on('mouseout', function () {
-                                d3.select(this).style("opacity", "1");
-                           })
                            .on('click', mouseEntersState);
 
                 svg_toggle.selectAll("text")
@@ -163,11 +163,12 @@
                 function updateChart(question_num) {
                     //clear labels
                     annotations.html("");
+                    questionBox.html("");
 
                     //change question and change data based on question
                     questionBox.append("text")
-                           .text(surveyData[question_num]['question']);
-                    const data = surveyData[question_num] 
+                           .text(category_data[question_num]['question']);
+                    const data = category_data[question_num] 
                     //reformat data for bar chart 
                     const data_formatted = Object.entries(data["adults"]).map(([key, value]) => ({
                                                             key: key,
@@ -203,9 +204,7 @@
                     annotations.append("g")
                         .attr("class", "y gridlines") 
                         .attr("transform", `translate(${margin.left - 10},${margin.top})`)  
-                        .call(leftGridlines); 
-
-                    
+                        .call(leftGridlines);                     
 
                     chartArea.selectAll('rect.bar').data(data_formatted)
                             .join('rect')
@@ -219,15 +218,16 @@
                 }
 
                 //when blue box is clicked, 
-                function updateQuestion() {
+                function updateQuestion(value) {
                     prevQuestion.attr("visibility","visible");
                     nextQuestion.attr("visibility","visible");
+
                     if (d3.select(this).attr("class") == "nextQ") { questionSelected += 1; }
                     else { questionSelected -= 1;} 
-                    console.log(questionSelected)                  
-                    if (questionSelected == 0) {
+                 
+                    if (questionSelected === 0) {
                         prevQuestion.attr("visibility","hidden");}
-                    if (questionSelected == 34) {
+                    if (questionSelected === category_data.length - 1) {
                         nextQuestion.attr("visibility","hidden");}
                         
                     questionBox.html("");
@@ -243,14 +243,26 @@
                 function mouseEntersState() {
                     titlebar.html("");
                     const selected = d3.select(this);
+                    svg_toggle.selectAll("image").style("opacity", 1);
+                    d3.select(this).style("opacity", "0.4");
+                    
                     const image_name = selected._groups[0][0].__data__;
 
                     //Changing the title name...later graphs will dynamically change
-                    const title = categories[images.indexOf(image_name)];
+                    const title = categories[images.indexOf(image_name)].toLowerCase();
 
-                    titlebar.append("text")
-                            .text(title)
-                            .attr("class", "title-text");
+                    category_data = surveyData.filter(function(d) {
+                                            return (d["category"] === title)
+                                        })
+                    
+                    questionSelected = 0;
+                    prevQuestion.attr("visibility","hidden");
+                    nextQuestion.attr("visibility","visible");
+
+                    updateChart(questionSelected);
+
+                    console.log(category_data);
+
                 }
 
 
