@@ -4,6 +4,7 @@
 
         <!-- Loading scripts -->
         <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-array.v2.min.js"></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,6 +45,7 @@
 
             #container {
                 padding-left: 4em;
+                display: flex;
             }
 
             .title-text {
@@ -72,7 +74,7 @@
         <div id="container">
             <!-- ALL : This is where our visualizations will go !!!!!!!!1! -->
             <svg id="chart" height="500" width="700" style="border: 1px solid blue;"></svg>
-
+            <svg id="breakdown" height="500" width="700" style="border: 1px solid blue;"></svg>
 
         </div>
         
@@ -85,6 +87,12 @@
                 const height = svg.attr("height");
                 const chartWidth = width - margin.left - margin.right;
                 const chartHeight = height - margin.top - margin.bottom;
+
+                const svg_breakdown = d3.select("#breakdown");
+                const breakdown_width = svg_breakdown.attr("width");
+                const breakdown_height = svg_breakdown.attr("height");
+
+
 
                 let annotations = svg.append("g").attr("id","annotations");
                 let questionSelected = 0;
@@ -248,21 +256,56 @@
                     
                     const image_name = selected._groups[0][0].__data__;
 
-                    //Changing the title name...later graphs will dynamically change
+                    //Graphs dynamically change based on category
                     const title = categories[images.indexOf(image_name)].toLowerCase();
 
                     category_data = surveyData.filter(function(d) {
                                             return (d["category"] === title)
                                         })
                     
+                    //resetting question toggle
                     questionSelected = 0;
                     prevQuestion.attr("visibility","hidden");
                     nextQuestion.attr("visibility","visible");
 
                     updateChart(questionSelected);
 
-                    console.log(category_data);
+                }
+                updateBreakdown();
+                function updateBreakdown() {
+                    const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
+                    "or_Straight", "race_NonWhite", "race_White"];
+                    const data = category_data[0] 
+                    //Gets only the demographic breakdown data
+                    // breakdown_data = Object.keys(data)
+                    //                         .filter(key => breakdowns.includes(key))
+                    //                         .reduce((obj, key) => {
+                    //                             obj[key] = data[key];
+                    //                             return obj;
+                    //                         }, {});
+                    // console.log(breakdown_data);
+                    let data_formatted = [];
+                    breakdowns.forEach( (d, i) => {
+                        const breakdownGroup = data[d];
+                        data_formatted.push(Object.entries(breakdownGroup).map(([key, value]) => ({
+                                                            category: key,
+                                                            count: value,
+                                                            breakdown: d
+                                                            })));
+                    })
+                    data_formatted = data_formatted.flat();
+                    
+                    //someone help me
+                    const series = d3.stack()
+                                    .keys(d3.union(data_formatted.map(d => d.breakdown))) // gets breakdown keys - this works
+                                    .value(([, group], key) => group.get(key).count) //this line doesn't work
+                                    (d3.index(data_formatted, d => d.breakdown, d => d.category));
+                    
+                    console.log(d3.index(data_formatted, d => d.breakdown, d => d.category));
+    
 
+
+                    
                 }
 
 
