@@ -172,6 +172,9 @@
                     //clear labels
                     annotations.html("");
                     questionBox.html("");
+                    svg_breakdown.html("");
+
+                    updateBreakdown(question_num);
 
                     //change question and change data based on question
                     questionBox.append("text")
@@ -271,39 +274,90 @@
                     updateChart(questionSelected);
 
                 }
-                updateBreakdown();
-                function updateBreakdown() {
+                updateBreakdown(0);
+                function updateBreakdown(question_num) {
                     const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
                     "or_Straight", "race_NonWhite", "race_White"];
-                    const data = category_data[0] 
+                    const data = category_data[question_num] 
                     //Gets only the demographic breakdown data
-                    // breakdown_data = Object.keys(data)
-                    //                         .filter(key => breakdowns.includes(key))
-                    //                         .reduce((obj, key) => {
-                    //                             obj[key] = data[key];
-                    //                             return obj;
-                    //                         }, {});
-                    // console.log(breakdown_data);
+                    breakdown_data = Object.keys(data)
+                                            .filter(key => breakdowns.includes(key))
+                                            .reduce((obj, key) => {
+                                                obj[key] = data[key];
+                                                return obj;
+                                            }, {});
+                    console.log(breakdown_data);
+
+                    const better_data = [];
+
+                    for (const [key, value] of Object.entries(breakdown_data)) {
+                        let temp = {}
+                        temp["category"] = key;
+                        for (const [key2, value2] of Object.entries(value)) {
+                            temp[key2] = value2;
+                        }
+                        better_data.push(temp);
+
+                    }
+
+                    console.log(better_data);
+
+
                     let data_formatted = [];
                     breakdowns.forEach( (d, i) => {
                         const breakdownGroup = data[d];
                         data_formatted.push(Object.entries(breakdownGroup).map(([key, value]) => ({
+                                                            breakdown: d,
                                                             category: key,
                                                             count: value,
-                                                            breakdown: d
                                                             })));
                     })
                     data_formatted = data_formatted.flat();
-                    
+
+                    console.log(data_formatted);
+   
+                    var subgroups = Object.keys(better_data[0]).slice(1)
                     //someone help me
                     const series = d3.stack()
-                                    .keys(d3.union(data_formatted.map(d => d.breakdown))) // gets breakdown keys - this works
-                                    .value(([, group], key) => group.get(key).count) //this line doesn't work
-                                    (d3.index(data_formatted, d => d.breakdown, d => d.category));
-                    
-                    console.log(d3.index(data_formatted, d => d.breakdown, d => d.category));
-    
+                                    .keys(subgroups)                 
+                                (better_data);
 
+                    console.log(series);
+
+                    var x = d3.scaleBand()
+                                .domain(breakdowns)
+                                .range([0, breakdown_width])
+                                .padding([0.2])
+                    svg_breakdown.append("g")
+                                .attr("transform", "translate(0," + breakdown_height + ")")
+                                .call(d3.axisBottom(x).tickSizeOuter(0));
+
+                    // Add Y axis
+                    var y = d3.scaleLinear()
+                        .domain([0, 60])
+                        .range([ breakdown_height, 0 ]);
+                        
+                    svg_breakdown.append("g")
+                        .call(d3.axisLeft(y));
+
+                    var color = d3.scaleOrdinal()
+                                    .domain(subgroups)
+                                    .range(['#e41a1c','#377eb8','#4daf4a'])
+
+                    svg_breakdown.append("g")
+                        .selectAll("g")
+                        // Enter in the stack data = loop key per key = group per group
+                        .data(series)
+                        .enter().append("g")
+                        .attr("fill", function(d) { return color(d.key);})
+                        .selectAll("rect")
+                        // enter a second time = loop subgroup per subgroup to add all rectangles
+                        .data(function(d) { return d; })
+                        .enter().append("rect")
+                            .attr("x", function(d) { return x(d.data.category); })
+                            .attr("y", function(d) { return y(d[1]); })
+                            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+                            .attr("width",x.bandwidth())
 
                     
                 }
