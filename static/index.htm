@@ -82,17 +82,11 @@
             const requestData = async function() {
                 const surveyData = await d3.json("data/masc_survey_formatted.json");
                 const svg = d3.select("#chart");
-                let margin = { top: 50, bottom: 40, right: 10, left: 120 }
+                let margin = { top: 50, bottom: 40, right: 35, left: 120 }
                 const width = svg.attr("width");
                 const height = svg.attr("height");
                 const chartWidth = width - margin.left - margin.right;
                 const chartHeight = height - margin.top - margin.bottom;
-
-                const svg_breakdown = d3.select("#breakdown");
-                const breakdown_width = svg_breakdown.attr("width");
-                const breakdown_height = svg_breakdown.attr("height");
-
-
 
                 let annotations = svg.append("g").attr("id","annotations");
                 let questionSelected = 0;
@@ -163,7 +157,7 @@
                               .style("text-anchor", "middle");
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
-                console.log(surveyData);
+                //console.log(surveyData);
 
                 
                 updateChart(0);
@@ -172,7 +166,7 @@
                     //clear labels
                     annotations.html("");
                     questionBox.html("");
-                    svg_breakdown.html("");
+                    //svg_breakdown.html("");
 
                     updateBreakdown(question_num);
 
@@ -218,17 +212,33 @@
                         .call(leftGridlines);                     
 
                     chartArea.selectAll('rect.bar').data(data_formatted)
-                            .join('rect')
-                            .attr('class','bar')
-                            .attr("fill", "steelblue")
-                            .attr("y", (d) => answerScale(d['key']))
-                            .attr("x", (d) => -10) 
-                            .attr("stroke", "black")
-                            .attr("width", (d) => percentScale(d['value']))
-                            .attr("height", answerScale.bandwidth())
-                }
+                            .join(
+                                enter => enter.append('rect')
+                                    .attr('class', 'bar')
+                                    .attr("fill", "#800f2f")
+                                    .attr("stroke", "black")
+                                    .attr("x", (d) => -10)
+                                    .attr("y", (d) => answerScale(d['key']))
+                                    .attr("width", (d) => percentScale(d['value']))
+                                    .attr("height", answerScale.bandwidth())
+                                    .on("mouseover", function(d) {
+                                        chartArea.selectAll('rect.bar').filter(function() {
+                                            return this !== event.target;
+                                        }).attr("opacity", 0.5);
+                                        updateBreakdown(question_num, d.key);
+                                        })
+                                        .on("mouseout", function() {
+                                            chartArea.selectAll('rect.bar').attr("opacity", 1);
+                                            updateBreakdown(question_num);
+                                        }),
+                                    update => update, // No-op for existing elements
+                                    exit => exit.remove() // Remove bars that are no longer needed
+                                );
 
-                //when blue box is clicked, 
+                    }
+                    
+
+                //when right arrow box is clicked, 
                 function updateQuestion(value) {
                     prevQuestion.attr("visibility","visible");
                     nextQuestion.attr("visibility","visible");
@@ -274,8 +284,26 @@
                     updateChart(questionSelected);
 
                 }
+
+
+
+                //Breakdown chart starts
+
+
+
                 updateBreakdown(0);
-                function updateBreakdown(question_num) {
+                function updateBreakdown(question_num, color_key) {
+                    const svg_breakdown = d3.select("#breakdown");
+                    const breakdown_width = svg_breakdown.attr("width");
+                    const breakdown_height = svg_breakdown.attr("height");
+                    let break_margin = { top: 50, bottom: 5, right: 0, left: 90 }
+                    const breakWidth = width - margin.left - margin.right;
+                    const breakHeight = height - margin.top - margin.bottom;
+
+                    let break_annotations = svg_breakdown.append("g").attr("id","annotations");
+                    let breakArea = svg.append("g").attr("id","points")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
+
                     const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
                     "or_Straight", "race_NonWhite", "race_White"];
                     const data = category_data[question_num] 
@@ -286,7 +314,7 @@
                                                 obj[key] = data[key];
                                                 return obj;
                                             }, {});
-                    console.log(breakdown_data);
+                    //console.log(breakdown_data);
 
                     const better_data = [];
 
@@ -300,7 +328,6 @@
 
                     }
 
-                    console.log(better_data);
 
 
                     let data_formatted = [];
@@ -314,50 +341,91 @@
                     })
                     data_formatted = data_formatted.flat();
 
-                    console.log(data_formatted);
+                    //console.log(data_formatted);
    
                     var subgroups = Object.keys(better_data[0]).slice(1)
-                    //someone help me
+                    //someone help me <3333333 
                     const series = d3.stack()
                                     .keys(subgroups)                 
                                 (better_data);
 
-                    console.log(series);
 
-                    var x = d3.scaleBand()
+                    // const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
+                    //                                 .padding(0.05);
+                                                    
+                    // const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+
+                    var yScale = d3.scaleBand()
                                 .domain(breakdowns)
-                                .range([0, breakdown_width])
+                                .range([10, breakHeight])
                                 .padding([0.2])
-                    svg_breakdown.append("g")
-                                .attr("transform", "translate(0," + breakdown_height + ")")
-                                .call(d3.axisBottom(x).tickSizeOuter(0));
+                    // svg_breakdown.append("g")
+                    //             .attr("transform", "translate(0," + breakHeight + ")")
+                    //             .call(d3.axisBottom(xScale).tickSizeOuter(0));
 
                     // Add Y axis
-                    var y = d3.scaleLinear()
-                        .domain([0, 60])
-                        .range([ breakdown_height, 0 ]);
+                    var xScale = d3.scaleLinear()
+                        .domain([0, 100])
+                        .range([ 0, breakWidth ]);
                         
                     svg_breakdown.append("g")
-                        .call(d3.axisLeft(y));
+                        .call(d3.axisLeft(xScale));
 
-                    var color = d3.scaleOrdinal()
+                    var color = d3.scaleOrdinal() 
                                     .domain(subgroups)
-                                    .range(['#e41a1c','#377eb8','#4daf4a'])
+                                    .range(['#f3dae1','#e7b5c2','#e1a3b3', '#db90a4', '#d57d95', '#ce6a85'])
+
+
+                    //format af
+                    let bottomAxis = d3.axisBottom(xScale); 
+                    let bottomGridlines = d3.axisBottom(xScale)
+                        .tickSize(-breakHeight)
+                        .tickFormat(d3.format('.0%'));
+
+                    break_annotations.append("g")
+                        .attr("class", "x axis") 
+                        .attr("transform", `translate(${break_margin.left},${breakHeight+break_margin.top})`)
+                        //.tickFormat(d3.format('.0%'))
+                        .call(bottomAxis); 
+
+                    let leftAxis = d3.axisLeft(yScale); 
+                    let leftGridlines = d3.axisLeft(yScale)
+                        .tickSize(-breakWidth)
+                        .tickFormat(""); 
+
+                    break_annotations.append("g")
+                        .attr("class", "y axis") 
+                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
+                        .call(leftAxis); 
+
+                    break_annotations.append("g")
+                        .attr("class", "y gridlines") 
+                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
+                        .call(leftGridlines); 
+
 
                     svg_breakdown.append("g")
                         .selectAll("g")
                         // Enter in the stack data = loop key per key = group per group
                         .data(series)
                         .enter().append("g")
-                        .attr("fill", function(d) { return color(d.key);})
+                        .attr("fill", function(d) { 
+                            if (!color_key){
+                                return color(d.key);
+                            }
+                            else {
+                                return d.key === color_key ? color(d.key) : "lightgray";
+                            }
+                    
+                            })
                         .selectAll("rect")
                         // enter a second time = loop subgroup per subgroup to add all rectangles
                         .data(function(d) { return d; })
                         .enter().append("rect")
-                            .attr("x", function(d) { return x(d.data.category); })
-                            .attr("y", function(d) { return y(d[1]); })
-                            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-                            .attr("width",x.bandwidth())
+                            .attr("y", function(d) { return yScale(d.data.category)+50;})
+                            .attr("x", function(d) { return xScale(d[0]+15); })
+                            .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
+                            .attr("height",yScale.bandwidth())
 
                     
                 }
