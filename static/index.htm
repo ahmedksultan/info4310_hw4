@@ -222,10 +222,10 @@
                                     .attr("width", (d) => percentScale(d['value']))
                                     .attr("height", answerScale.bandwidth())
                                     .on("mouseover", function(d) {
-                                        chartArea.selectAll('rect.bar').filter(function() {
+                                        chartArea.selectAll('rect.bar').filter(function() { 
                                             return this !== event.target;
                                         }).attr("opacity", 0.5);
-                                        updateBreakdown(question_num, d.key);
+                                        updateBreakdown(question_num, d.key); //calls the right graph so it can highlight that key
                                         })
                                         .on("mouseout", function() {
                                             chartArea.selectAll('rect.bar').attr("opacity", 1);
@@ -240,6 +240,7 @@
 
                 //when right arrow box is clicked, 
                 function updateQuestion(value) {
+                    
                     prevQuestion.attr("visibility","visible");
                     nextQuestion.attr("visibility","visible");
 
@@ -292,8 +293,9 @@
 
 
                 updateBreakdown(0);
-                function updateBreakdown(question_num, color_key) {
+                function updateBreakdown(question_num, color_key) { //color_key is for highlighting the key (e.g. very masculine)
                     const svg_breakdown = d3.select("#breakdown");
+                    svg_breakdown.html("");
                     const breakdown_width = svg_breakdown.attr("width");
                     const breakdown_height = svg_breakdown.attr("height");
                     let break_margin = { top: 50, bottom: 5, right: 0, left: 90 }
