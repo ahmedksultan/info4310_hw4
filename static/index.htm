@@ -27,6 +27,9 @@
             .page-title { 
                 margin: 0;
                 font-size: 48px;
+                text-decoration: underline;
+                text-decoration-color: #ff4d00;
+                text-decoration-thickness: 5px;
             }
 
             .header p { 
@@ -36,12 +39,14 @@
             }
 
             .toggle-holder {
-                padding-left:7em;
-                padding-top: 10px;
+                margin: auto !important;
+                padding-top: 1em;
+                align-content: center;
             }
 
             #container {
-                padding-left: 4em;
+                margin: auto;
+                width: 90%;
                 display: flex;
             }
 
@@ -49,20 +54,29 @@
                 font-size: 30px;
             }
             .audio-div{
-                padding-left: 5em;
+                margin: auto;
                 width:30%;
-                margin-top: 50px;
+                text-align: center;
             }
             .single-audio {
-                background-color: #800f2f;
+                background-color: grey;
                 border-radius: 30px; 
                 margin: 5px;
                 padding: 2px; 
                 height:35px;
             }
             .top{
+                margin: auto;
+            }
+
+            #audios {
                 display: flex;
-                flex-direction: row;
+                justify-content: center;
+            }
+            #toggle-menu{
+                margin-left: 29vw;
+                padding: 0;
+                margin-bottom: 0;
             }
 
         </style>
@@ -76,18 +90,21 @@
                 <h1 class="page-title"> What Do Men Think It Means To Be A Man? </h1>
                 <br>
                 <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73)</p>
-                <p style="color: grey; "><i>Original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a></i></p>
+                <p style="color: rgb(160, 160, 160);"><i>Original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a></i></p>
                 <br><br>
-                <p>In the wake of <b>#MeToo</b>, FiveThirtyEight interviewed more than 1,600 men to discover how the movement changed their thinking on masculinity. Click through the survey questions below to explore the data.</p>
             </div>
-            <div class = "audio-div">
-                </p><b>Listen to real FiveThirtyEight interviewees:</b></p>
-                <div id="audios"></div>
-            </div>
+            <p style="width: 50%; font-size: 24px; text-align: center; margin: auto;">In the wake of <b>#MeToo</b>, FiveThirtyEight interviewed more than 1,600 men to discover how the movement changed their thinking on <b style="color: #ff4d00">masculinity</b>. Click through the survey questions below to explore the data.</p>
         </div>
+
         <div class="toggle-holder" height="500" width="200" >
             <svg id="toggle-menu" height="100" width="900" ></svg>
+            <div class = "audio-div">
+                </p><b>Listen to real FiveThirtyEight interviewees:</b></p>
+            <div id="audios"></div>
         </div>
+
+        <br>
+
 
         <div id="container">
             <svg id="chart" height="500" width="700" ></svg>
@@ -176,18 +193,23 @@
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
 
+
+                let category_selected = "masculinity";
                 
                 updateChart(0);
 
+                
+
                 function updateChart(question_num) {
+                    const notcategorical = [2, 3];
+                    
                     //clear labels
                     left_annotations.html("");
                     bottom_annotations.html("");
                     questionBox.html("");
                     chartArea.html("");
 
-                    updateBreakdown(question_num);
-
+                
                     //change question and change data based on question
                     questionBox.append("text")
                            .text(category_data[question_num]['question'])
@@ -233,12 +255,28 @@
                     
                     left_annotations.selectAll("text")
                     .attr('transform', 'rotate(-45) translate(0,-10)')
+
+                    if(!notcategorical.includes(question_num)) {
+                        cats = []
+                        data_formatted.forEach(k => {
+                            cats.push(k.key);
+                        })
+
+                        var color = d3.scaleOrdinal() 
+                                        .domain(cats)
+                                        .range(['#ff0000','#ff4d00','#ff7400', '#ff9a00', '#ffc100', '#ffdc6e']);
+
+                        updateBreakdown(question_num);
+                    } else {
+                        var color = d3.scaleOrdinal(["#ff4d00"]);
+                        updateBreakdown(question_num);
+                    }
                         
                     chartArea.selectAll('rect.bar').data(data_formatted)
                             .join(
                                 enter => enter.append('rect')
                                     .attr('class', 'bar')
-                                    .attr("fill", "#800f2f")
+                                    .attr("fill", (d) => color(d.key))
                                     .attr("x", (d) => -10)
                                     .attr("y", (d) => answerScale(d['key']))
                                     .attr("width", (d) => percentScale(d['value']))
@@ -323,6 +361,8 @@
                     category_data = surveyData.filter(function(d) {
                                             return (d["category"] === title)
                                         })
+
+                    category_selected = title;
                     
                     //resetting question toggle
                     questionSelected = 0;
@@ -340,134 +380,156 @@
 
                 updateBreakdown(0);
                 function updateBreakdown(question_num, color_key) { //color_key is for highlighting the key (e.g. very masculine)
-                    const svg_breakdown = d3.select("#breakdown");
-                    svg_breakdown.html("");
-                    const breakdown_width = svg_breakdown.attr("width");
-                    const breakdown_height = svg_breakdown.attr("height");
-                    let break_margin = { top: 50, bottom: 5, right: 0, left: 90 }
-                    const breakWidth = width - margin.left - margin.right;
-                    const breakHeight = height - margin.top - margin.bottom;
+                    let notSeq = [];
 
-                    let break_annotations = svg_breakdown.append("g").attr("id","annotations");
-                    let breakArea = svg.append("g").attr("id","points")
-                    .attr("transform",`translate(${margin.left},${margin.top})`);
-
-                    const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
-                    "or_Straight", "race_NonWhite", "race_White"];
-                    const data = category_data[question_num] 
-                    //Gets only the demographic breakdown data
-                    breakdown_data = Object.keys(data)
-                                            .filter(key => breakdowns.includes(key))
-                                            .reduce((obj, key) => {
-                                                obj[key] = data[key];
-                                                return obj;
-                                            }, {});
-                    //console.log(breakdown_data);
-
-                    const reformatted_breakdowns = [];
-
-                    for (const [key, value] of Object.entries(breakdown_data)) {
-                        let temp = {}
-                        temp["category"] = key;
-                        for (const [key2, value2] of Object.entries(value)) {
-                            temp[key2] = value2;
-                        }
-                        reformatted_breakdowns.push(temp);
-
+                    if(category_selected == 'masculinity'){
+                        notSeq=[2,3];
+                    } else if (category_selected='lifestyle'){
+                        notSeq=[11];
+                    } else if (category_selected=='work'){
+                        console.log("HELP!!");
+                        notSeq=[0,1,2,3,4];
+                    } else{
+                        notSeq=[];
                     }
 
-                    //console.log(data_formatted);
-   
-                    var subgroups = Object.keys(reformatted_breakdowns[0]).slice(1)
-                    //someone help me <3333333 
-                    const series = d3.stack()
-                                    .keys(subgroups)                 
-                                (reformatted_breakdowns);
+                    console.log(category_selected);
 
 
-                    // const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
-                    //                                 .padding(0.05);
-                                                    
-                    // const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+                    console.log(category_data);
+                    if(!notSeq.includes(question_num)) {
+                        const svg_breakdown = d3.select("#breakdown");
+                        svg_breakdown.html("");
+                        const breakdown_width = svg_breakdown.attr("width");
+                        const breakdown_height = svg_breakdown.attr("height");
+                        let break_margin = { top: 50, bottom: 5, right: 0, left: 90 }
+                        const breakWidth = width - margin.left - margin.right;
+                        const breakHeight = height - margin.top - margin.bottom;
 
-                    var yScale = d3.scaleBand()
-                                .domain(breakdowns)
-                                .range([10, breakHeight])
-                                .padding([0.2])
-                    // svg_breakdown.append("g")
-                    //             .attr("transform", "translate(0," + breakHeight + ")")
-                    //             .call(d3.axisBottom(xScale).tickSizeOuter(0));
+                        let break_annotations = svg_breakdown.append("g").attr("id","annotations");
+                        let breakArea = svg.append("g").attr("id","points")
+                        .attr("transform",`translate(${margin.left},${margin.top})`);
 
-                    // Add Y axis
-                    var xScale = d3.scaleLinear()
-                        .domain([0, 100])
-                        .range([ 0, breakWidth ]);
+                        const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
+                        "or_Straight", "race_NonWhite", "race_White"];
+                        const data = category_data[question_num] 
+                        //Gets only the demographic breakdown data
+                        breakdown_data = Object.keys(data)
+                                                .filter(key => breakdowns.includes(key))
+                                                .reduce((obj, key) => {
+                                                    obj[key] = data[key];
+                                                    return obj;
+                                                }, {});
+                        //console.log(breakdown_data);
+
+                        const reformatted_breakdowns = [];
+
+                        for (const [key, value] of Object.entries(breakdown_data)) {
+                            let temp = {}
+                            temp["category"] = key;
+                            for (const [key2, value2] of Object.entries(value)) {
+                                temp[key2] = value2;
+                            }
+                            reformatted_breakdowns.push(temp);
+
+                        }
+
+                        //console.log(data_formatted);
+    
+                        var subgroups = Object.keys(reformatted_breakdowns[0]).slice(1)
+                        //someone help me <3333333 
+                        const series = d3.stack()
+                                        .keys(subgroups)                 
+                                    (reformatted_breakdowns);
+
+
+                        // const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
+                        //                                 .padding(0.05);
+                                                        
+                        // const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+
+                        var yScale = d3.scaleBand()
+                                    .domain(breakdowns)
+                                    .range([10, breakHeight])
+                                    .padding([0.2])
+                        // svg_breakdown.append("g")
+                        //             .attr("transform", "translate(0," + breakHeight + ")")
+                        //             .call(d3.axisBottom(xScale).tickSizeOuter(0));
+
+                        // Add Y axis
+                        var xScale = d3.scaleLinear()
+                            .domain([0, 100])
+                            .range([ 0, breakWidth ]);
+                            
+                        svg_breakdown.append("g")
+                            .call(d3.axisLeft(xScale));
+
+                        var color = d3.scaleOrdinal() 
+                                        .domain(subgroups)
+                                        .range(['#ff0000','#ff4d00','#ff7400', '#ff9a00', '#ffc100', '#ffdc6e'])
+
+
+                        //format af
+                        let bottomAxis = d3.axisBottom(xScale); 
+                        let bottomGridlines = d3.axisBottom(xScale)
+                            .tickSize(-breakHeight)
+                            .tickFormat(d3.format('.0%'));
+
+                        break_annotations.append("g")
+                            .attr("class", "x axis") 
+                            .attr("transform", `translate(${break_margin.left},${breakHeight+break_margin.top})`)
+                            //.tickFormat(d3.format('.0%'))
+                            .call(bottomAxis); 
+
+                        let leftAxis = d3.axisLeft(yScale); 
+                        let leftGridlines = d3.axisLeft(yScale)
+                            .tickSize(-breakWidth)
+                            .tickFormat(""); 
+
+                        break_annotations.append("g")
+                            .attr("class", "y axis") 
+                            .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
+                            .call(leftAxis); 
+
+                        break_annotations.append("g")
+                            .attr("class", "y gridlines") 
+                            .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
+                            .call(leftGridlines); 
+
+
+                        svg_breakdown.append("g")
+                            .selectAll("g")
+                            // Enter in the stack data = loop key per key = group per group
+                            .data(series)
+                            .enter().append("g")
+                            .attr("fill", function(d) { 
+                                if (!color_key){
+                                    return color(d.key);
+                                }
+                                else {
+                                    return d.key === color_key ? color(d.key) : "lightgray";
+                                }
                         
-                    svg_breakdown.append("g")
-                        .call(d3.axisLeft(xScale));
-
-                    var color = d3.scaleOrdinal() 
-                                    .domain(subgroups)
-                                    .range(['#f3dae1','#e7b5c2','#e1a3b3', '#db90a4', '#d57d95', '#ce6a85'])
-
-
-                    //format af
-                    let bottomAxis = d3.axisBottom(xScale); 
-                    let bottomGridlines = d3.axisBottom(xScale)
-                        .tickSize(-breakHeight)
-                        .tickFormat(d3.format('.0%'));
-
-                    break_annotations.append("g")
-                        .attr("class", "x axis") 
-                        .attr("transform", `translate(${break_margin.left},${breakHeight+break_margin.top})`)
-                        //.tickFormat(d3.format('.0%'))
-                        .call(bottomAxis); 
-
-                    let leftAxis = d3.axisLeft(yScale); 
-                    let leftGridlines = d3.axisLeft(yScale)
-                        .tickSize(-breakWidth)
-                        .tickFormat(""); 
-
-                    break_annotations.append("g")
-                        .attr("class", "y axis") 
-                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
-                        .call(leftAxis); 
-
-                    break_annotations.append("g")
-                        .attr("class", "y gridlines") 
-                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
-                        .call(leftGridlines); 
-
-
-                    svg_breakdown.append("g")
-                        .selectAll("g")
-                        // Enter in the stack data = loop key per key = group per group
-                        .data(series)
-                        .enter().append("g")
-                        .attr("fill", function(d) { 
-                            if (!color_key){
-                                return color(d.key);
-                            }
-                            else {
-                                return d.key === color_key ? color(d.key) : "lightgray";
-                            }
+                                })
+                            .selectAll("rect")
+                            // enter a second time = loop subgroup per subgroup to add all rectangles
+                            .data(function(d) { return d; })
+                            .enter().append("rect")
+                                .attr("y", function(d) { return yScale(d.data.category)+50;})
+                                .attr("x", function(d) { return xScale(d[0]+15); })
+                                .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
+                                .attr("height",yScale.bandwidth())
                     
-                            })
-                        .selectAll("rect")
-                        // enter a second time = loop subgroup per subgroup to add all rectangles
-                        .data(function(d) { return d; })
-                        .enter().append("rect")
-                            .attr("y", function(d) { return yScale(d.data.category)+50;})
-                            .attr("x", function(d) { return xScale(d[0]+15); })
-                            .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
-                            .attr("height",yScale.bandwidth())
-                
-            svg_breakdown.append("text")
-                .text("Demographic Breakdown by Response")
-                .attr("x", 200)
-                .attr("y", 50)
-                    
+                    svg_breakdown.append("text")
+                        .text("Demographic Breakdown by Response")
+                        .attr("x", 200)
+                        .attr("y", 50)
+                    } else {
+                        d3.select("#breakdown").selectAll("*").remove();
+                    }
                 }
+
+            console.log(surveyData);
 
 
             }
