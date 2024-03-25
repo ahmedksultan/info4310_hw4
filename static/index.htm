@@ -203,15 +203,16 @@
                 function updateChart(question_num) {
                     let notSeq = [];
 
+                    console.log(category_selected);
+
                     if(category_selected == 'masculinity'){
                         notSeq=[2,3];
-                    } else if (category_selected='lifestyle'){
+                    } else if (category_selected=='lifestyle'){
                         notSeq=[11];
                     } else if (category_selected=='work'){
-                        console.log("HELP!!");
-                        notSeq=[0,1,2,3,4];
+                        notSeq=[0,1,2,3,5];
                     } else{
-                        notSeq=[];
+                        notSeq=[0, 2, 3, 4, 5];
                     }
                     
                     //clear labels
@@ -395,13 +396,12 @@
 
                     if(category_selected == 'masculinity'){
                         notSeq=[2,3];
-                    } else if (category_selected='lifestyle'){
+                    } else if (category_selected=='lifestyle'){
                         notSeq=[11];
                     } else if (category_selected=='work'){
-                        console.log("HELP!!");
-                        notSeq=[0,1,2,3,4];
+                        notSeq=[0,1,2,3,5];
                     } else{
-                        notSeq=[];
+                        notSeq=[0, 2, 3, 4, 5];
                     }
 
                     if(!notSeq.includes(question_num)) {
