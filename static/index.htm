@@ -32,6 +32,7 @@
             .header p { 
                 margin: 0;
                 font-size: 16px;
+                width: 700px;
             }
 
             .toggle-holder {
@@ -74,9 +75,10 @@
                 <!-- ALL : Maybe an explanation or better title/subtitle could be helpful -->
                 <h1 class="page-title"> What Do Men Think It Means To Be A Man? </h1>
                 <br>
-                <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73) for Prof. Rzeszotarski's INFO 4310 class</p>
-                <br>
+                <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73)</p>
                 <p style="color: grey; "><i>Original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a></i></p>
+                <br><br>
+                <p>In the wake of <b>#MeToo</b>, FiveThirtyEight interviewed more than 1,600 men to discover how the movement changed their thinking on masculinity. Click through the survey questions below to explore the data.</p>
             </div>
             <div class = "audio-div">
                 </p><b>Listen to real FiveThirtyEight interviewees:</b></p>
@@ -84,18 +86,12 @@
             </div>
         </div>
         <div class="toggle-holder" height="500" width="200" >
-
             <svg id="toggle-menu" height="100" width="900" ></svg>
-
-
         </div>
 
         <div id="container">
-            <!-- ALL : This is where our visualizations will go !!!!!!!!1! -->
-
             <svg id="chart" height="500" width="700" ></svg>
-            <svg id="breakdown" height="500" width="700"></svg>
-            
+            <svg id="breakdown" class = "breakdown" height="500" width="700"></svg>
         </div>
         
         
@@ -109,7 +105,8 @@
                 const chartWidth = width - margin.left - margin.right;
                 const chartHeight = height - margin.top - margin.bottom;
 
-                let annotations = svg.append("g").attr("id","annotations");
+                let bottom_annotations = svg.append("g").attr("id","annotations");
+                let left_annotations = svg.append("g").attr("id","annotations");
                 let questionSelected = 0;
                 let questionBox = svg.append("g").attr("id","points")
                     .attr("transform",`translate(${margin.left},${margin.top})`);
@@ -128,7 +125,7 @@
                 let prevQuestion =svg.append("image")
                     .join('image')
                     .attr("xlink:href", 'data/left.png')
-                    .attr("x", 80)
+                    .attr("x", 90)
                     .attr("y", 10)
                     .attr("class", "prevQ")
                     .attr("width", 30)
@@ -140,7 +137,7 @@
                     prevQuestion.attr("visibility","hidden");}
                 
                 let category_data = surveyData.filter(function(d) {
-                                            return (d["category"] === 'lifestyle')
+                                            return (d["category"] === 'masculinity')
                                         })
 
 
@@ -178,14 +175,14 @@
                               .style("text-anchor", "middle");
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
-                //console.log(surveyData);
 
                 
                 updateChart(0);
 
                 function updateChart(question_num) {
                     //clear labels
-                    annotations.html("");
+                    left_annotations.html("");
+                    bottom_annotations.html("");
                     questionBox.html("");
                     chartArea.html("");
 
@@ -194,7 +191,9 @@
                     //change question and change data based on question
                     questionBox.append("text")
                            .text(category_data[question_num]['question'])
-                           .attr("x", 20);
+                           .attr("x", 5)
+                           .style("font-weight", "bold")
+                           
                     const data = category_data[question_num] 
                     //reformat data for bar chart 
                     const data_formatted = Object.entries(data["adults"]).map(([key, value]) => ({
@@ -212,33 +211,34 @@
                         .tickSize(-chartHeight)
                         .tickFormat(d3.format('.0%'));
 
-                    annotations.append("g")
+                    bottom_annotations.append("g")
                         .attr("class", "x axis") 
                         .attr("transform", `translate(${margin.left},${chartHeight+margin.top})`)
-                        //.tickFormat(d3.format('.0%'))
                         .call(bottomAxis); 
 
                     let leftAxis = d3.axisLeft(answerScale); 
                     let leftGridlines = d3.axisLeft(answerScale)
                         .tickSize(-chartWidth)
-                        .tickFormat(""); 
+                        .tickFormat("");
 
-                    annotations.append("g")
+                    left_annotations.append("g")
                         .attr("class", "y axis") 
                         .attr("transform", `translate(${margin.left - 10},${margin.top})`)
                         .call(leftAxis); 
 
-                    annotations.append("g")
+                    left_annotations.append("g")
                         .attr("class", "y gridlines") 
                         .attr("transform", `translate(${margin.left - 10},${margin.top})`)  
                         .call(leftGridlines);                     
-
+                    
+                    left_annotations.selectAll("text")
+                    .attr('transform', 'rotate(-45) translate(0,-10)')
+                        
                     chartArea.selectAll('rect.bar').data(data_formatted)
                             .join(
                                 enter => enter.append('rect')
                                     .attr('class', 'bar')
                                     .attr("fill", "#800f2f")
-                                    .attr("stroke", "black")
                                     .attr("x", (d) => -10)
                                     .attr("y", (d) => answerScale(d['key']))
                                     .attr("width", (d) => percentScale(d['value']))
@@ -305,7 +305,7 @@
                     });
                 }
 
-                displayAudios("lifestyle"); // default?
+                displayAudios("masculinity");
                 
                 //function for when user clicks on an icon
                 function mouseEntersState() {
@@ -332,7 +332,6 @@
                     updateChart(questionSelected);  
                     displayAudios(title);
                 }
-
 
 
                 //Breakdown chart starts
@@ -462,7 +461,11 @@
                             .attr("x", function(d) { return xScale(d[0]+15); })
                             .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
                             .attr("height",yScale.bandwidth())
-
+                
+            svg_breakdown.append("text")
+                .text("Demographic Breakdown by Response")
+                .attr("x", 200)
+                .attr("y", 50)
                     
                 }
 
