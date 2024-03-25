@@ -187,7 +187,7 @@
                     //clear labels
                     annotations.html("");
                     questionBox.html("");
-                    //svg_breakdown.html("");
+                    chartArea.html("");
 
                     updateBreakdown(question_num);
 
@@ -365,7 +365,7 @@
                                             }, {});
                     //console.log(breakdown_data);
 
-                    const better_data = [];
+                    const reformatted_breakdowns = [];
 
                     for (const [key, value] of Object.entries(breakdown_data)) {
                         let temp = {}
@@ -373,30 +373,17 @@
                         for (const [key2, value2] of Object.entries(value)) {
                             temp[key2] = value2;
                         }
-                        better_data.push(temp);
+                        reformatted_breakdowns.push(temp);
 
                     }
 
-
-
-                    let data_formatted = [];
-                    breakdowns.forEach( (d, i) => {
-                        const breakdownGroup = data[d];
-                        data_formatted.push(Object.entries(breakdownGroup).map(([key, value]) => ({
-                                                            breakdown: d,
-                                                            category: key,
-                                                            count: value,
-                                                            })));
-                    })
-                    data_formatted = data_formatted.flat();
-
                     //console.log(data_formatted);
    
-                    var subgroups = Object.keys(better_data[0]).slice(1)
+                    var subgroups = Object.keys(reformatted_breakdowns[0]).slice(1)
                     //someone help me <3333333 
                     const series = d3.stack()
                                     .keys(subgroups)                 
-                                (better_data);
+                                (reformatted_breakdowns);
 
 
                     // const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
