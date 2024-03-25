@@ -201,7 +201,18 @@
                 
 
                 function updateChart(question_num) {
-                    const notcategorical = [2, 3];
+                    let notSeq = [];
+
+                    if(category_selected == 'masculinity'){
+                        notSeq=[2,3];
+                    } else if (category_selected='lifestyle'){
+                        notSeq=[11];
+                    } else if (category_selected=='work'){
+                        console.log("HELP!!");
+                        notSeq=[0,1,2,3,4];
+                    } else{
+                        notSeq=[];
+                    }
                     
                     //clear labels
                     left_annotations.html("");
@@ -256,7 +267,7 @@
                     left_annotations.selectAll("text")
                     .attr('transform', 'rotate(-45) translate(0,-10)')
 
-                    if(!notcategorical.includes(question_num)) {
+                    if(!notSeq.includes(question_num)) {
                         cats = []
                         data_formatted.forEach(k => {
                             cats.push(k.key);
@@ -393,10 +404,6 @@
                         notSeq=[];
                     }
 
-                    console.log(category_selected);
-
-
-                    console.log(category_data);
                     if(!notSeq.includes(question_num)) {
                         const svg_breakdown = d3.select("#breakdown");
                         svg_breakdown.html("");
