@@ -4,6 +4,7 @@
 
         <!-- Loading scripts -->
         <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-array.v2.min.js"></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +16,12 @@
             body {
                 background-color: #f0f0f0;
                 justify-items: center;
+                font-family: 'Roboto Condensed';
             }
 
             .header {
                 padding-top: 4em;
                 padding-left: 4em;
-                font-family: 'Roboto Condensed';
             }
 
             .page-title { 
@@ -31,10 +32,7 @@
             .header p { 
                 margin: 0;
                 font-size: 16px;
-            }
-
-            text {
-                font-family: 'Roboto Condensed';
+                width: 700px;
             }
 
             .toggle-holder {
@@ -44,10 +42,27 @@
 
             #container {
                 padding-left: 4em;
+                display: flex;
             }
 
             .title-text {
                 font-size: 30px;
+            }
+            .audio-div{
+                padding-left: 5em;
+                width:30%;
+                margin-top: 50px;
+            }
+            .single-audio {
+                background-color: #800f2f;
+                border-radius: 30px; 
+                margin: 5px;
+                padding: 2px; 
+                height:35px;
+            }
+            .top{
+                display: flex;
+                flex-direction: row;
             }
 
         </style>
@@ -55,35 +70,83 @@
 
     <body>
 
-        <div class="header">
-            <!-- ALL : Maybe an explanation or better title/subtitle could be helpful -->
-            <h1 class="page-title"> What Do Men Think It Means To Be A Man? </h1>
-            <br>
-            <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73) for Prof. Rzeszotarski's INFO 4310 class</p>
-            <p style="color: grey; ">&emsp;<i>(original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a>)</i></p>
+        <div class = "top">
+            <div class="header">
+                <!-- ALL : Maybe an explanation or better title/subtitle could be helpful -->
+                <h1 class="page-title"> What Do Men Think It Means To Be A Man? </h1>
+                <br>
+                <p>by <b>Carly Hu</b> (ch862), <b>Myna Lim</b> (ml2326), <b>Ahmed Sultan</b> (aks264), and <b>Sydney Wan</b> (ssw73)</p>
+                <p style="color: grey; "><i>Original data and reporting by <b>Ella Koeze</b> and <b>Anna Maria Barry-Jester</b> for <a href="https://fivethirtyeight.com/features/what-do-men-think-it-means-to-be-a-man/">FiveThirtyEight</a></i></p>
+                <br><br>
+                <p>In the wake of <b>#MeToo</b>, FiveThirtyEight interviewed more than 1,600 men to discover how the movement changed their thinking on masculinity. Click through the survey questions below to explore the data.</p>
+            </div>
+            <div class = "audio-div">
+                </p><b>Listen to real FiveThirtyEight interviewees:</b></p>
+                <div id="audios"></div>
+            </div>
         </div>
         <div class="toggle-holder" height="500" width="200" >
-
-            <svg id="toggle-menu" height="100" width="500"></svg>
-
-
+            <svg id="toggle-menu" height="100" width="900" ></svg>
         </div>
 
         <div id="container">
-            <!-- ALL : This is where our visualizations will go !!!!!!!!1! -->
-            <svg id="chart" height="500" width="600" style="border: 1px solid blue;"></svg>
-
-
+            <svg id="chart" height="500" width="700" ></svg>
+            <svg id="breakdown" class = "breakdown" height="500" width="700"></svg>
         </div>
+        
         
         <script>
             const requestData = async function() {
                 const surveyData = await d3.json("data/masc_survey_formatted.json");
                 const svg = d3.select("#chart");
-                let margin = { top: 50, bottom: 10, right: 10, left: 50 }
+                let margin = { top: 50, bottom: 40, right: 35, left: 120 }
+                const width = svg.attr("width");
+                const height = svg.attr("height");
+                const chartWidth = width - margin.left - margin.right;
+                const chartHeight = height - margin.top - margin.bottom;
+
+                let bottom_annotations = svg.append("g").attr("id","annotations");
+                let left_annotations = svg.append("g").attr("id","annotations");
+                let questionSelected = 0;
+                let questionBox = svg.append("g").attr("id","points")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
+                
+                    let nextQuestion = svg.append("image")
+                    .join('image')
+                    .attr("xlink:href", 'data/right.png')
+                    .attr("x", 630)
+                    .attr("y", 10)
+                    .attr("class", "nextQ")
+                    .attr("width", 30)
+                    .attr("height", 30)
+                    .attr("transform",`translate(0,20)`)
+                    .on("click", updateQuestion);
+
+                let prevQuestion =svg.append("image")
+                    .join('image')
+                    .attr("xlink:href", 'data/left.png')
+                    .attr("x", 90)
+                    .attr("y", 10)
+                    .attr("class", "prevQ")
+                    .attr("width", 30)
+                    .attr("height", 30)
+                    .attr("transform",`translate(0,20)`)
+                    .on("click", updateQuestion);
+                
+                if (questionSelected == 0) {
+                    prevQuestion.attr("visibility","hidden");}
+                
+                let category_data = surveyData.filter(function(d) {
+                                            return (d["category"] === 'masculinity')
+                                        })
+
+
+
+                let chartArea = svg.append("g").attr("id","points")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
 
                 //Adding Icons for the toggle bar at the top
-                const categories = ["Society", "Appearance", "Work", "Dating"];
+                const categories = ["Masculinity", "Lifestyle", "Work", "Relationships"];
                 const images = ['society.png', 'mirror.png', 'briefcase.png', 'rose.png'];
 
                 const svg_toggle = d3.select("#toggle-menu");
@@ -94,13 +157,11 @@
                            .attr("xlink:href", (d, i) => `data/${images[i]}`)
                            .attr("width", 60)
                            .attr("height", 60)
-                           .attr("x", (d, i) => i*100+10)
+                           .attr("x", (d, i) => i*100+120)
                            .attr("y", 10)
+                           .attr("opacity", 0.6)
                            .on('mouseover', function () {
-                                d3.select(this).style("opacity", "0.6");
-                           })
-                           .on('mouseout', function () {
-                                d3.select(this).style("opacity", "1");
+                                d3.select(this).style("cursor", "pointer");
                            })
                            .on('click', mouseEntersState);
 
@@ -109,27 +170,305 @@
                               .enter()
                               .append("text")
                               .text(function(d, i){return categories[i];})
-                              .attr("x", (d, i) => i*100+35)
+                              .attr("x", (d, i) => i*100+150)
                               .attr("y", 90)
                               .style("text-anchor", "middle");
 
                 const titlebar = svg.append("g").attr("transform", "translate("+margin.left+","+margin.top+")");
+
+                
+                updateChart(0);
+
+                function updateChart(question_num) {
+                    //clear labels
+                    left_annotations.html("");
+                    bottom_annotations.html("");
+                    questionBox.html("");
+                    chartArea.html("");
+
+                    updateBreakdown(question_num);
+
+                    //change question and change data based on question
+                    questionBox.append("text")
+                           .text(category_data[question_num]['question'])
+                           .attr("x", 5)
+                           .style("font-weight", "bold")
+                           
+                    const data = category_data[question_num] 
+                    //reformat data for bar chart 
+                    const data_formatted = Object.entries(data["adults"]).map(([key, value]) => ({
+                                                            key: key,
+                                                            value: value
+                                                            }));
+
+                    const answer = d3.keys(data['adults']); //getting the x-axis answers
+                    const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
+                                                    .padding(0.05);
+                                                    
+                    const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+                    let bottomAxis = d3.axisBottom(percentScale); 
+                    let bottomGridlines = d3.axisBottom(percentScale)
+                        .tickSize(-chartHeight)
+                        .tickFormat(d3.format('.0%'));
+
+                    bottom_annotations.append("g")
+                        .attr("class", "x axis") 
+                        .attr("transform", `translate(${margin.left},${chartHeight+margin.top})`)
+                        .call(bottomAxis); 
+
+                    let leftAxis = d3.axisLeft(answerScale); 
+                    let leftGridlines = d3.axisLeft(answerScale)
+                        .tickSize(-chartWidth)
+                        .tickFormat("");
+
+                    left_annotations.append("g")
+                        .attr("class", "y axis") 
+                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                        .call(leftAxis); 
+
+                    left_annotations.append("g")
+                        .attr("class", "y gridlines") 
+                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)  
+                        .call(leftGridlines);                     
+                    
+                    left_annotations.selectAll("text")
+                    .attr('transform', 'rotate(-45) translate(0,-10)')
+                        
+                    chartArea.selectAll('rect.bar').data(data_formatted)
+                            .join(
+                                enter => enter.append('rect')
+                                    .attr('class', 'bar')
+                                    .attr("fill", "#800f2f")
+                                    .attr("x", (d) => -10)
+                                    .attr("y", (d) => answerScale(d['key']))
+                                    .attr("width", (d) => percentScale(d['value']))
+                                    .attr("height", answerScale.bandwidth())
+                                    .on("mouseover", function(d) {
+                                        chartArea.selectAll('rect.bar').filter(function() { 
+                                            return this !== event.target;
+                                        }).attr("opacity", 0.5);
+                                        updateBreakdown(question_num, d.key); //calls the right graph so it can highlight that key
+                                        })
+                                        .on("mouseout", function() {
+                                            chartArea.selectAll('rect.bar').attr("opacity", 1);
+                                            updateBreakdown(question_num);
+                                        }),
+                                    update => update, // No-op for existing elements
+                                    exit => exit.remove() // Remove bars that are no longer needed
+                                );
+
+                    }
+                    
+
+                //when right arrow box is clicked, 
+                function updateQuestion(value) {
+                    
+                    prevQuestion.attr("visibility","visible");
+                    nextQuestion.attr("visibility","visible");
+
+                    if (d3.select(this).attr("class") == "nextQ") { questionSelected += 1; }
+                    else { questionSelected -= 1;} 
+                 
+                    if (questionSelected === 0) {
+                        prevQuestion.attr("visibility","hidden");}
+                    if (questionSelected === category_data.length - 1) {
+                        nextQuestion.attr("visibility","hidden");}
+                        
+                    questionBox.html("");
+                    updateChart(questionSelected);
+
+
+                }
+                
+
+                // rotate through audios based on category
+                const audioFiles = {
+                    lifestyle: ["audios/lifestyle1.m4a", "audios/lifestyle2.m4a", "audios/lifestyle3.m4a"],
+                    masculinity: ["audios/masculinity1.m4a", "audios/masculinity2.m4a", "audios/masculinity3.m4a"],
+                    relationships: ["audios/relationships1.m4a", "audios/relationships2.m4a", "audios/relationships3.m4a"],
+                    work: ["audios/work1.m4a", "audios/work2.m4a", "audios/work3.m4a"]
+                };
+
+                // function to display audio files for selected category
+                function displayAudios(category) {
+                    const audioContainer = d3.select("#audios");
+                    audioContainer.html(""); 
+                    
+                    const audioList = audioFiles[category];
+                    audioList.forEach((audio, index) => {
+                        audioContainer.append("audio")
+                        .attr("class", "single-audio")
+                        .attr("controls", true)
+                        .append("source")
+                        .attr("src", audio)
+                        .attr("type", "audio/mpeg")
+                    });
+                }
+
+                displayAudios("masculinity");
                 
                 //function for when user clicks on an icon
                 function mouseEntersState() {
                     titlebar.html("");
                     const selected = d3.select(this);
+                    svg_toggle.selectAll("image").style("opacity", 0.6);
+                    d3.select(this).style("opacity", 1);
+ 
+                    
                     const image_name = selected._groups[0][0].__data__;
 
-                    //Changing the title name...later graphs will dynamically change
-                    const title = categories[images.indexOf(image_name)];
+                    //Graphs dynamically change based on category
+                    const title = categories[images.indexOf(image_name)].toLowerCase();
 
-                    titlebar.append("text")
-                            .text(title)
-                            .attr("class", "title-text");
+                    category_data = surveyData.filter(function(d) {
+                                            return (d["category"] === title)
+                                        })
+                    
+                    //resetting question toggle
+                    questionSelected = 0;
+                    prevQuestion.attr("visibility","hidden");
+                    nextQuestion.attr("visibility","visible");
+
+                    updateChart(questionSelected);  
+                    displayAudios(title);
                 }
 
-                //console.log(surveyData);
+
+                //Breakdown chart starts
+
+
+
+                updateBreakdown(0);
+                function updateBreakdown(question_num, color_key) { //color_key is for highlighting the key (e.g. very masculine)
+                    const svg_breakdown = d3.select("#breakdown");
+                    svg_breakdown.html("");
+                    const breakdown_width = svg_breakdown.attr("width");
+                    const breakdown_height = svg_breakdown.attr("height");
+                    let break_margin = { top: 50, bottom: 5, right: 0, left: 90 }
+                    const breakWidth = width - margin.left - margin.right;
+                    const breakHeight = height - margin.top - margin.bottom;
+
+                    let break_annotations = svg_breakdown.append("g").attr("id","annotations");
+                    let breakArea = svg.append("g").attr("id","points")
+                    .attr("transform",`translate(${margin.left},${margin.top})`);
+
+                    const breakdowns = ["age_18-34", "age_35-64", "age_65+", "children_No", "children_Yes", "or_GayBisex",
+                    "or_Straight", "race_NonWhite", "race_White"];
+                    const data = category_data[question_num] 
+                    //Gets only the demographic breakdown data
+                    breakdown_data = Object.keys(data)
+                                            .filter(key => breakdowns.includes(key))
+                                            .reduce((obj, key) => {
+                                                obj[key] = data[key];
+                                                return obj;
+                                            }, {});
+                    //console.log(breakdown_data);
+
+                    const reformatted_breakdowns = [];
+
+                    for (const [key, value] of Object.entries(breakdown_data)) {
+                        let temp = {}
+                        temp["category"] = key;
+                        for (const [key2, value2] of Object.entries(value)) {
+                            temp[key2] = value2;
+                        }
+                        reformatted_breakdowns.push(temp);
+
+                    }
+
+                    //console.log(data_formatted);
+   
+                    var subgroups = Object.keys(reformatted_breakdowns[0]).slice(1)
+                    //someone help me <3333333 
+                    const series = d3.stack()
+                                    .keys(subgroups)                 
+                                (reformatted_breakdowns);
+
+
+                    // const answerScale = d3.scaleBand().domain(answer).range([10, chartHeight])
+                    //                                 .padding(0.05);
+                                                    
+                    // const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
+
+                    var yScale = d3.scaleBand()
+                                .domain(breakdowns)
+                                .range([10, breakHeight])
+                                .padding([0.2])
+                    // svg_breakdown.append("g")
+                    //             .attr("transform", "translate(0," + breakHeight + ")")
+                    //             .call(d3.axisBottom(xScale).tickSizeOuter(0));
+
+                    // Add Y axis
+                    var xScale = d3.scaleLinear()
+                        .domain([0, 100])
+                        .range([ 0, breakWidth ]);
+                        
+                    svg_breakdown.append("g")
+                        .call(d3.axisLeft(xScale));
+
+                    var color = d3.scaleOrdinal() 
+                                    .domain(subgroups)
+                                    .range(['#f3dae1','#e7b5c2','#e1a3b3', '#db90a4', '#d57d95', '#ce6a85'])
+
+
+                    //format af
+                    let bottomAxis = d3.axisBottom(xScale); 
+                    let bottomGridlines = d3.axisBottom(xScale)
+                        .tickSize(-breakHeight)
+                        .tickFormat(d3.format('.0%'));
+
+                    break_annotations.append("g")
+                        .attr("class", "x axis") 
+                        .attr("transform", `translate(${break_margin.left},${breakHeight+break_margin.top})`)
+                        //.tickFormat(d3.format('.0%'))
+                        .call(bottomAxis); 
+
+                    let leftAxis = d3.axisLeft(yScale); 
+                    let leftGridlines = d3.axisLeft(yScale)
+                        .tickSize(-breakWidth)
+                        .tickFormat(""); 
+
+                    break_annotations.append("g")
+                        .attr("class", "y axis") 
+                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
+                        .call(leftAxis); 
+
+                    break_annotations.append("g")
+                        .attr("class", "y gridlines") 
+                        .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
+                        .call(leftGridlines); 
+
+
+                    svg_breakdown.append("g")
+                        .selectAll("g")
+                        // Enter in the stack data = loop key per key = group per group
+                        .data(series)
+                        .enter().append("g")
+                        .attr("fill", function(d) { 
+                            if (!color_key){
+                                return color(d.key);
+                            }
+                            else {
+                                return d.key === color_key ? color(d.key) : "lightgray";
+                            }
+                    
+                            })
+                        .selectAll("rect")
+                        // enter a second time = loop subgroup per subgroup to add all rectangles
+                        .data(function(d) { return d; })
+                        .enter().append("rect")
+                            .attr("y", function(d) { return yScale(d.data.category)+50;})
+                            .attr("x", function(d) { return xScale(d[0]+15); })
+                            .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
+                            .attr("height",yScale.bandwidth())
+                
+            svg_breakdown.append("text")
+                .text("Demographic Breakdown by Response")
+                .attr("x", 200)
+                .attr("y", 50)
+                    
+                }
+
 
             }
 

@@ -12,6 +12,16 @@ def convHelper(xin):
 
     return xout
 
+def categorize(q_num):
+    if 1 <= q_num <= 4:
+        return "masculinity"
+    elif 5 <= q_num <= 16:
+        return "lifestyle"
+    elif 17 <= q_num <= 23:
+        return "work"
+    elif 24 <= q_num <= 29:
+         return "relationships"
+
 # ----- READING FILE -----
 with open("masculinity-survey.csv", mode="r") as f:
     csvfile = csv.reader(f)
@@ -31,11 +41,11 @@ with open("masculinity-survey.csv", mode="r") as f:
 
     for line in csvfile:
         if (line[0]):
-
             # create new Question object
             questions.append(
                 {
                     'question'      : line[0],
+                    'category'      : categorize(q_idx+2),
                     'adults'        : {},
                     'age_18-34'     : {},
                     'age_35-64'     : {},
@@ -45,7 +55,7 @@ with open("masculinity-survey.csv", mode="r") as f:
                     'children_Yes'  : {},
                     'children_No'   : {},
                     'or_Straight'   : {},
-                    'or_GayBisex'   : {}
+                    'or_GayBisex'   : {},
                 }
             )
             
