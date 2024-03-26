@@ -230,6 +230,8 @@
                            .text(category_data[question_num]['question'])
                            .attr("x", chartWidth/2)
                            .style("text-anchor", "middle")
+                           .style("font-size", "14px")
+                           .style("text-decoration", "underline")
                            .attr("y", 0);
                            
                     const data = category_data[question_num] 
@@ -551,9 +553,12 @@
                                 .attr("stroke-width", "1px");
                     
                     svg_breakdown.append("text")
-                        .text("Demographic Breakdown by Response")
-                        .attr("x", 200)
+                        .text("Breakdown of responses by demographic")
+                        .style("text-anchor", "middle")
+                        .attr("x", breakdown_width / 2.1)
                         .attr("y", 50)
+                        .style("font-size", "14px")
+                        .style("text-decoration", "underline")
                     } else {
                         d3.select("#breakdown").selectAll("*").remove();
                     }
