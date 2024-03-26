@@ -79,6 +79,10 @@
                 margin-bottom: 0;
             }
 
+            .gridlines{
+                color: lightgrey;
+            }
+
         </style>
     </head>
 
@@ -106,7 +110,7 @@
 
 
         <div id="container">
-            <svg id="chart" height="500" width="700" ></svg>
+            <svg id="chart" height="500" width="650" ></svg>
             <svg id="breakdown" class = "breakdown" height="500" width="700"></svg>
         </div>
         
@@ -224,8 +228,9 @@
                     //change question and change data based on question
                     questionBox.append("text")
                            .text(category_data[question_num]['question'])
-                           .attr("x", 5)
-                           .style("font-weight", "bold")
+                           .attr("x", chartWidth/2)
+                           .style("text-anchor", "middle")
+                           .attr("y", 0);
                            
                     const data = category_data[question_num] 
                     //reformat data for bar chart 
@@ -241,13 +246,8 @@
                     const percentScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]); 
                     let bottomAxis = d3.axisBottom(percentScale); 
                     let bottomGridlines = d3.axisBottom(percentScale)
-                        .tickSize(-chartHeight)
-                        .tickFormat(d3.format('.0%'));
-
-                    bottom_annotations.append("g")
-                        .attr("class", "x axis") 
-                        .attr("transform", `translate(${margin.left},${chartHeight+margin.top})`)
-                        .call(bottomAxis); 
+                        .tickSize(-chartHeight+10)
+                        .tickFormat("");
 
                     let leftAxis = d3.axisLeft(answerScale); 
                     let leftGridlines = d3.axisLeft(answerScale)
@@ -256,13 +256,18 @@
 
                     left_annotations.append("g")
                         .attr("class", "y axis") 
-                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)
+                        .attr("transform", `translate(${margin.left -10},${margin.top})`)
                         .call(leftAxis); 
 
-                    left_annotations.append("g")
-                        .attr("class", "y gridlines") 
-                        .attr("transform", `translate(${margin.left - 10},${margin.top})`)  
-                        .call(leftGridlines);                     
+                    bottom_annotations.append("g")
+                        .attr("class", "x gridlines") 
+                        .attr("transform", `translate(${margin.left-10},${height-margin.bottom})`)  
+                        .call(bottomGridlines);     
+                    
+                    bottom_annotations.append("g")
+                        .attr("class", "x axis") 
+                        .attr("transform", `translate(${margin.left-10},${chartHeight+margin.top})`)
+                        .call(bottomAxis);     
                     
                     left_annotations.selectAll("text")
                     .attr('transform', 'rotate(-45) translate(0,-10)')
@@ -515,7 +520,7 @@
                             .call(leftAxis); 
 
                         break_annotations.append("g")
-                            .attr("class", "y gridlines") 
+                            .attr("class", "x gridlines") 
                             .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
                             .call(leftGridlines); 
 
@@ -542,6 +547,8 @@
                                 .attr("x", function(d) { return xScale(d[0])+81; })
                                 .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
                                 .attr("height",yScale.bandwidth())
+                                .attr("stroke", "white")
+                                .attr("stroke-width", "1px");
                     
                     svg_breakdown.append("text")
                         .text("Demographic Breakdown by Response")
