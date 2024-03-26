@@ -406,14 +406,10 @@
                     d3.select("#audioTitle").selectAll("p").remove();
                     displayAudios(title);
 
-                  
-
                 }
 
 
                 //Breakdown chart starts
-
-
 
                 updateBreakdown(0);
                 function updateBreakdown(question_num, color_key) { //color_key is for highlighting the key (e.g. very masculine)
@@ -469,7 +465,6 @@
                         //console.log(data_formatted);
     
                         var subgroups = Object.keys(reformatted_breakdowns[0]).slice(1)
-                        //someone help me <3333333 
                         const series = d3.stack()
                                         .keys(subgroups)                 
                                     (reformatted_breakdowns);
@@ -492,9 +487,6 @@
                         var xScale = d3.scaleLinear()
                             .domain([0, 100])
                             .range([ 0, breakWidth ]);
-                            
-                        svg_breakdown.append("g")
-                            .call(d3.axisLeft(xScale));
 
                         var color = d3.scaleOrdinal() 
                                         .domain(subgroups)
@@ -535,10 +527,6 @@
                             .attr("class", "y axis") 
                             .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
                             .call(leftAxis); 
-
-                           
-                    
-
 
                         svg_breakdown.append("g")
                             .selectAll("g")
