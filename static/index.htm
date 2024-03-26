@@ -83,6 +83,8 @@
                 color: lightgrey;
             }
 
+            
+
         </style>
     </head>
 
@@ -502,12 +504,17 @@
                         //format af
                         let bottomAxis = d3.axisBottom(xScale); 
                         let bottomGridlines = d3.axisBottom(xScale)
-                            .tickSize(-breakHeight)
-                            .tickFormat(d3.format('.0%'));
+                            .tickSize(-breakHeight+10)
+                            .tickFormat("");
+                        
+                        break_annotations.append("g")
+                            .attr("class", "x gridlines") 
+                            .attr("transform", `translate(${break_margin.left-10},${breakHeight+break_margin.top})`)  
+                            .call(bottomGridlines);  
 
                         break_annotations.append("g")
                             .attr("class", "x axis") 
-                            .attr("transform", `translate(${break_margin.left},${breakHeight+break_margin.top})`)
+                            .attr("transform", `translate(${break_margin.left-10},${breakHeight+break_margin.top})`)
                             //.tickFormat(d3.format('.0%'))
                             .call(bottomAxis); 
 
@@ -529,10 +536,8 @@
                             .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)
                             .call(leftAxis); 
 
-                        break_annotations.append("g")
-                            .attr("class", "x gridlines") 
-                            .attr("transform", `translate(${break_margin.left - 10},${break_margin.top})`)  
-                            .call(leftGridlines); 
+                           
+                    
 
 
                         svg_breakdown.append("g")
