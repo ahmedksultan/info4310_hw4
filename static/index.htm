@@ -509,7 +509,15 @@
                             //.tickFormat(d3.format('.0%'))
                             .call(bottomAxis); 
 
-                        let leftAxis = d3.axisLeft(yScale); 
+                        let axisNames = ["Age: 18-34", "Age: 35-64", "Age: 65+", "No Children", "Has Children", "Gay/Bisexual", "Straight", "NonWhite", "White"];
+                        let leftAxis = d3.axisLeft(yScale)
+                        .tickFormat(function(d, i) {
+                            if (i < axisNames.length) {
+                                return axisNames[i];
+                            } else {
+                                return "";
+                            }
+                        });
                         let leftGridlines = d3.axisLeft(yScale)
                             .tickSize(-breakWidth)
                             .tickFormat(""); 
