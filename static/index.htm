@@ -69,7 +69,7 @@
                 margin: auto;
             }
 
-            #audios {
+            .audios {
                 display: flex;
                 justify-content: center;
             }
@@ -98,9 +98,8 @@
 
         <div class="toggle-holder" height="500" width="200" >
             <svg id="toggle-menu" height="100" width="900" ></svg>
-            <div class = "audio-div">
-                </p><b>Listen to real FiveThirtyEight interviewees:</b></p>
-            <div id="audios"></div>
+            <div class ="audios" id = "audioTitle"></div>
+            <div class ="audios" id="audios"></div>
         </div>
 
         <br>
@@ -131,7 +130,7 @@
                     let nextQuestion = svg.append("image")
                     .join('image')
                     .attr("xlink:href", 'data/right.png')
-                    .attr("x", 630)
+                    .attr("x", 600)
                     .attr("y", 10)
                     .attr("class", "nextQ")
                     .attr("width", 30)
@@ -176,7 +175,7 @@
                            .attr("height", 60)
                            .attr("x", (d, i) => i*100+120)
                            .attr("y", 10)
-                           .attr("opacity", 0.6)
+                           .attr("opacity", 0.3)
                            .on('mouseover', function () {
                                 d3.select(this).style("cursor", "pointer");
                            })
@@ -293,6 +292,7 @@
                                     .attr("y", (d) => answerScale(d['key']))
                                     .attr("width", (d) => percentScale(d['value']))
                                     .attr("height", answerScale.bandwidth())
+                                    .attr("border", "white")
                                     .on("mouseover", function(d) {
                                         chartArea.selectAll('rect.bar').filter(function() { 
                                             return this !== event.target;
@@ -343,7 +343,19 @@
                 function displayAudios(category) {
                     const audioContainer = d3.select("#audios");
                     audioContainer.html(""); 
-                    
+
+                    let audioTitle = d3.select("#audioTitle")
+                    audioTitle.append("p")
+                        .text("Listen to real FiveThirtyEight interviewees talk about...")
+                        .style("font-weight", "bold");
+                    audioTitle.append("p")
+                        .text(" "+category)
+                        .style("font-weight", "bold")
+                        .style("color","ff4d00")
+                    audioTitle.append("p")
+                        .text(":")
+                        .style("font-weight", "bold")
+           
                     const audioList = audioFiles[category];
                     audioList.forEach((audio, index) => {
                         audioContainer.append("audio")
@@ -356,12 +368,13 @@
                 }
 
                 displayAudios("masculinity");
+
                 
                 //function for when user clicks on an icon
                 function mouseEntersState() {
                     titlebar.html("");
                     const selected = d3.select(this);
-                    svg_toggle.selectAll("image").style("opacity", 0.6);
+                    svg_toggle.selectAll("image").style("opacity", 0.3);
                     d3.select(this).style("opacity", 1);
  
                     
@@ -382,7 +395,11 @@
                     nextQuestion.attr("visibility","visible");
 
                     updateChart(questionSelected);  
+                    d3.select("#audioTitle").selectAll("p").remove();
                     displayAudios(title);
+
+                  
+
                 }
 
 
