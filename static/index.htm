@@ -288,11 +288,10 @@
                                 enter => enter.append('rect')
                                     .attr('class', 'bar')
                                     .attr("fill", (d) => color(d.key))
-                                    .attr("x", (d) => -10)
+                                    .attr("x", (d) => -9)
                                     .attr("y", (d) => answerScale(d['key']))
                                     .attr("width", (d) => percentScale(d['value']))
                                     .attr("height", answerScale.bandwidth())
-                                    .attr("border", "white")
                                     .on("mouseover", function(d) {
                                         chartArea.selectAll('rect.bar').filter(function() { 
                                             return this !== event.target;
@@ -540,7 +539,7 @@
                             .data(function(d) { return d; })
                             .enter().append("rect")
                                 .attr("y", function(d) { return yScale(d.data.category)+50;})
-                                .attr("x", function(d) { return xScale(d[0]+15); })
+                                .attr("x", function(d) { return xScale(d[0])+81; })
                                 .attr("width", function(d) { return (xScale(d[1]) - xScale(d[0])); })
                                 .attr("height",yScale.bandwidth())
                     
